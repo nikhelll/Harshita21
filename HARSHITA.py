@@ -158,7 +158,7 @@ def show_slideshow():
     st.image(img, use_column_width=True)
     st.markdown(f"<p style='text-align:center; color:gray;'>Photo {photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
 
-def show_realistic_cake():
+def show_cake():
     st.markdown("<h3 style='text-align:center; color:#D2691E;'>🎂 Realistic 3D Chocolate Cake! 🎂</h3>", unsafe_allow_html=True)
 
     layers = 3
@@ -251,6 +251,7 @@ if st.session_state.unlocked:
         show_cake()
 else:
     show_landing_page()
+
 
 
 
