@@ -158,111 +158,86 @@ def show_slideshow():
     st.image(img, use_column_width=True)
     st.markdown(f"<p style='text-align:center; color:gray;'>Photo {photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
 
-def show_cake():
-    st.markdown("<h3 style='text-align:center; color:#D2691E;'>🎂 Your Special 3D Birthday Cake! 🎂</h3>", unsafe_allow_html=True)
+def show_realistic_cake():
+    st.markdown("<h3 style='text-align:center; color:#D2691E;'>🎂 Realistic 3D Chocolate Cake! 🎂</h3>", unsafe_allow_html=True)
 
-    # --- Cake parameters ---
-    cake_radius = 1.5  # bigger cake
-    cake_height = 1.5
     layers = 3
-    layer_height = cake_height / layers
-    layer_colors = ['saddlebrown', 'peru', 'chocolate']  # different chocolate layers
-    frosting_color = 'mistyrose'
+    layer_height = 0.5
+    layer_radius = 1.2
+    layer_colors = ['#7B3F00', '#8B4513', '#A0522D']  # chocolate shades
+    frosting_height = 0.05
+    frosting_color = '#F5DEB3'  # light frosting
 
     fig = go.Figure()
     theta = np.linspace(0, 2*np.pi, 60)
-    x = cake_radius * np.cos(theta)
-    y = cake_radius * np.sin(theta)
-
-    # --- Cake Layers ---
+    
+    # --- Build cake layers as solid cylinders ---
     for i in range(layers):
-        z_bottom = np.full_like(theta, i * layer_height)
+        z_bottom = i * (layer_height + frosting_height)
         z_top = z_bottom + layer_height
-        # Side of cake
-        fig.add_trace(go.Mesh3d(
-            x=np.concatenate([x, x[::-1]]),
-            y=np.concatenate([y, y[::-1]]),
-            z=np.concatenate([z_bottom, z_top]),
-            color=layer_colors[i],
-            opacity=0.95,
-            flatshading=True
+        x = layer_radius * np.cos(theta)
+        y = layer_radius * np.sin(theta)
+        z = np.linspace(z_bottom, z_top, 2)
+
+        # Create a meshgrid for cylinder surface
+        X, Z = np.meshgrid(x, z)
+        Y, _ = np.meshgrid(y, z)
+
+        fig.add_trace(go.Surface(
+            x=X, y=Y, z=Z,
+            colorscale=[[0, layer_colors[i]], [1, layer_colors[i]]],
+            showscale=False,
+            cmin=0, cmax=1,
+            lighting=dict(ambient=0.8, diffuse=0.8, specular=0.5),
+            hoverinfo='skip'
         ))
-        # Frosting layer on top of each cake layer except top
-        if i < layers - 1:
-            fig.add_trace(go.Mesh3d(
-                x=np.append(x, 0),
-                y=np.append(y, 0),
-                z=np.append(np.full_like(x, z_top[-1]), z_top[-1]),
-                color=frosting_color,
-                opacity=0.9
-            ))
 
-    # --- Top surface ---
-    fig.add_trace(go.Mesh3d(
-        x=np.append(x, 0),
-        y=np.append(y, 0),
-        z=np.append(np.full_like(x, cake_height), cake_height),
-        color=layer_colors[-1],
-        opacity=0.95
-    ))
+        # Frosting layer on top
+        Z_frost = np.full_like(X, z_top)
+        fig.add_trace(go.Surface(
+            x=X, y=Y, z=Z_frost + frosting_height,
+            colorscale=[[0, frosting_color], [1, frosting_color]],
+            showscale=False,
+            cmin=0, cmax=1,
+            lighting=dict(ambient=0.9, diffuse=0.9, specular=0.5),
+            hoverinfo='skip'
+        ))
 
-    # --- Sprinkles ---
-    sprinkle_count = 50
-    xs = np.random.uniform(-cake_radius*0.8, cake_radius*0.8, sprinkle_count)
-    ys = np.random.uniform(-cake_radius*0.8, cake_radius*0.8, sprinkle_count)
-    zs = np.full_like(xs, cake_height + 0.02)
-    colors = np.random.choice(['red', 'yellow', 'blue', 'green', 'orange'], sprinkle_count)
-    fig.add_trace(go.Scatter3d(
-        x=xs, y=ys, z=zs, mode='markers',
-        marker=dict(size=3, color=colors),
-        showlegend=False
-    ))
-
-    # --- Candles for "21" ---
+    # --- Candles ---
     def add_candle(x_pos, y_pos, candle_height=0.3, candle_radius=0.05):
         phi = np.linspace(0, 2*np.pi, 20)
         x_c = x_pos + candle_radius * np.cos(phi)
         y_c = y_pos + candle_radius * np.sin(phi)
-        z_c = np.zeros_like(phi)
-        fig.add_trace(go.Mesh3d(
-            x=np.concatenate([x_c, [x_pos]]),
-            y=np.concatenate([y_c, [y_pos]]),
-            z=np.concatenate([z_c + cake_height, np.full(1, cake_height + candle_height)]),
-            color='white',
-            opacity=1.0
+        z_c = np.linspace(layers * (layer_height + frosting_height), layers * (layer_height + frosting_height) + candle_height, 2)
+        X, Z = np.meshgrid(x_c, z_c)
+        Y, _ = np.meshgrid(y_c, z_c)
+        fig.add_trace(go.Surface(
+            x=X, y=Y, z=Z,
+            colorscale=[[0, 'white'], [1, 'white']],
+            showscale=False,
+            hoverinfo='skip'
         ))
         # Flame
-        flame_height = candle_height * 0.3
         fig.add_trace(go.Scatter3d(
-            x=[x_pos], y=[y_pos], z=[cake_height + candle_height + flame_height],
-            mode='markers', marker=dict(size=6, color='orange'),
+            x=[x_pos], y=[y_pos], z=[layers * (layer_height + frosting_height) + candle_height + 0.05],
+            mode='markers', marker=dict(size=5, color='orange'),
             showlegend=False
         ))
 
-    # Place candles like "21"
-    add_candle(-0.5, 0.5)
-    add_candle(0.0, 0.5)
-
-    # --- Knife Animation (simulated) ---
-    knife_x = np.array([-cake_radius, cake_radius/2])
-    knife_y = np.array([0, 0])
-    knife_z = np.array([cake_height + 0.1, cake_height + 0.1])
-    fig.add_trace(go.Scatter3d(
-        x=knife_x, y=knife_y, z=knife_z,
-        mode='lines',
-        line=dict(color='silver', width=5),
-        showlegend=False
-    ))
+    # Candles for '21'
+    add_candle(-0.4, 0.4)
+    add_candle(0.2, 0.4)
 
     fig.update_layout(scene=dict(
         xaxis=dict(visible=False),
         yaxis=dict(visible=False),
         zaxis=dict(visible=False),
-        aspectratio=dict(x=1, y=1, z=0.7),
-        camera=dict(eye=dict(x=1.8, y=1.8, z=1.2))
+        aspectratio=dict(x=1, y=1, z=0.6),
+        camera=dict(eye=dict(x=1.5, y=1.5, z=1.2))
     ))
 
     st.plotly_chart(fig)
+
 
 
 # --- Main ---
@@ -276,6 +251,7 @@ if st.session_state.unlocked:
         show_cake()
 else:
     show_landing_page()
+
 
 
 
