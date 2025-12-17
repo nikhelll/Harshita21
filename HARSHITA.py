@@ -17,7 +17,7 @@ st.set_page_config(
 )
 
 # --- Paths (adjust to your local setup) ---
-IMAGE_PATH = r"C:\Users\nikhi\Documents\Scripts\Harshita21\MANCHURIAN.jpg"
+IMAGE_PATH = "MANCHURIAN.jpg"
 PHOTO_DIR = r"C:\Users\nikhi\Documents\Scripts\Script\Pics"
 SONG_PATH = r"C:\Users\nikhi\Documents\Scripts\Script\Song\song.mp3"  # simplified path
 
@@ -164,3 +164,4 @@ if st.session_state.unlocked:
     show_surprise_page()
 else:
     show_landing_page()
+
