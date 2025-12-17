@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Harshita's Birthday Countdown + Secret Code Unlock + Surprise Page
+Harshita's Birthday Countdown + Surprise Page
 """
 
 import streamlit as st
@@ -8,6 +8,7 @@ from datetime import datetime
 import random
 import os
 from PIL import Image
+from streamlit_autorefresh import st_autorefresh
 
 # --- Page Setup ---
 st.set_page_config(
@@ -16,9 +17,12 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- Paths (repo-based) ---
+# --- Auto-refresh every 1 second ---
+st_autorefresh(interval=1000, limit=None, key="refresh")
+
+# --- Paths ---
 IMAGE_PATH = "MANCHURIAN.jpg"
-PHOTO_DIR = "."  # current repo directory, where all photos are
+PHOTO_DIR = "."  # all jpgs are in repo root
 SONG_PATH = "yt1z.net - Gryffin - Nobody Compares To You (Official Music Video) ft. Katie Pearlman (320 KBps).mp3"
 
 # --- Secret Code ---
@@ -33,9 +37,6 @@ if "audio_playing" not in st.session_state:
     st.session_state.start_time = None
     st.session_state.audio_bytes = None
 
-if "photo_index" not in st.session_state:
-    st.session_state.photo_index = 0
-
 # --- Dates ---
 birthday = datetime(2025, 12, 21, 0, 0, 0)
 start_date = datetime(2025, 1, 1)
@@ -43,18 +44,24 @@ now = datetime.now()
 countdown = birthday - now
 total_duration = birthday - start_date
 
-# --- Helper Functions ---
+# --- Load and sort photos ---
+all_photos = [f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))]
 
+# Custom order: baby1 → baby3, then pic1 → pic23
+photo_order = []
+for i in range(1, 4):
+    filename = f"baby{i}.jpg"
+    if filename in all_photos:
+        photo_order.append(filename)
+for i in range(1, 24):
+    filename = f"pic{i}.jpg"
+    if filename in all_photos:
+        photo_order.append(filename)
+
+# --- Helper Functions ---
 def show_landing_page():
     st.markdown("<h1 style='text-align: center; color: #D6336C;'>🎉 Harshita's 21st Birthday 🎉</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center; color: #F25F5C;'>Countdown to Her Special Day</h3>", unsafe_allow_html=True)
-
-    # Progress bar
-    progress = (now - start_date).total_seconds() / total_duration.total_seconds()
-    progress = min(max(progress, 0), 1)
-    st.markdown("### ⏳ Time Until December 21, 2025")
-    st.progress(progress)
-    st.markdown(f"**{progress*100:.2f}%** of the journey to Harshita’s birthday completed! 🎈")
 
     # Countdown
     if countdown.total_seconds() > 0:
@@ -71,7 +78,6 @@ def show_landing_page():
 
     st.markdown("---")
     st.markdown("<h3 style='text-align: center;'>🔐 Enter the Secret Code to Unlock a Surprise</h3>", unsafe_allow_html=True)
-
     code_input = st.text_input("🔢 Enter 4-digit Secret Code", type="password", max_chars=4)
 
     if code_input:
@@ -79,17 +85,16 @@ def show_landing_page():
             st.success("🔓 Unlocked! You're amazing for figuring it out. 💖")
             st.session_state.unlocked = True
             st.balloons()
-            show_surprise_page()  # immediately show surprise
-            return  # stop further execution of landing page
+        else:
+            st.error("❌ That's not the right code. Try again?")
 
-    # Show main image
+    # Show image
     if os.path.exists(IMAGE_PATH):
         image = Image.open(IMAGE_PATH)
         st.markdown("---")
         st.image(image, caption="Your Favourite 😉", use_column_width=True)
     else:
         st.warning("Couldn't find MANCHURIAN.jpg at the specified path.")
-
 
 def show_surprise_page():
     st.markdown("<h1 style='text-align: center; color: #D6336C;'>🎉 Happy 21st Birthday, My Love! 🎉</h1>", unsafe_allow_html=True)
@@ -105,56 +110,43 @@ def show_surprise_page():
     st.write(love_letter)
     st.markdown("---")
 
-    # --- Photo slideshow ---
-    photos = [f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))]
+    total_photos = len(photo_order)
+    song_length_seconds = 231  # adjust to your song
 
-    # Custom sorting: baby1 → baby3, then pic1 → pic23
-    def photo_sort_key(name):
-        if name.lower().startswith("baby"):
-            return (0, int(''.join(filter(str.isdigit, name))))
-        elif name.lower().startswith("pic"):
-            return (1, int(''.join(filter(str.isdigit, name))))
-        else:
-            return (2, name)
-    photos = sorted(photos, key=photo_sort_key)
-
-    if photos:
-        total_photos = len(photos)
-        song_length_seconds = 231  # update if different
-        photo_display_time = song_length_seconds / total_photos
-
-        # --- Audio control ---
-        if not st.session_state.audio_playing:
-            if st.button("▶️ Play Song"):
-                st.session_state.audio_playing = True
-                st.session_state.start_time = datetime.now()
-                try:
-                    with open(SONG_PATH, "rb") as f:
-                        st.session_state.audio_bytes = f.read()
-                except Exception as e:
-                    st.warning(f"Unable to load audio: {e}")
-        else:
-            if st.session_state.audio_bytes:
-                elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
-                st.audio(st.session_state.audio_bytes, format="audio/mp3", start_time=elapsed)
-
-        # Show current photo based on elapsed time
-        if st.session_state.audio_playing and st.session_state.start_time:
+    # --- Audio ---
+    if not st.session_state.audio_playing:
+        if st.button("▶️ Play Song"):
+            st.session_state.audio_playing = True
+            st.session_state.start_time = datetime.now()
+            try:
+                with open(SONG_PATH, "rb") as f:
+                    st.session_state.audio_bytes = f.read()
+            except Exception as e:
+                st.warning(f"Unable to load audio: {e}")
+    else:
+        if st.session_state.audio_bytes and st.session_state.start_time:
             elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
+            st.audio(st.session_state.audio_bytes, format="audio/mp3", start_time=elapsed)
         else:
             elapsed = 0
 
-        st.session_state.photo_index = int(elapsed // photo_display_time) % total_photos
-        image_path = os.path.join(PHOTO_DIR, photos[st.session_state.photo_index])
+    # --- Show current photo based on elapsed time ---
+    if st.session_state.audio_playing and st.session_state.start_time:
+        elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
+    else:
+        elapsed = 0
+
+    if total_photos > 0:
+        photo_display_time = song_length_seconds / total_photos
+        current_index = int(elapsed // photo_display_time) % total_photos
+        image_path = os.path.join(PHOTO_DIR, photo_order[current_index])
         img = Image.open(image_path)
         st.image(img, use_column_width=True)
-        st.markdown(f"<p style='text-align: center; color: gray;'>Photo {st.session_state.photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='text-align: center; color: gray;'>Photo {current_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
     else:
         st.info("No photos found for the slideshow.")
 
     st.markdown("---")
-
-    # --- Daily Love Quote ---
     quotes = [
         "Distance means so little when someone means so much.",
         "Love knows no distance; it hath no continent; its eyes are for the stars. – Gilbert Parker",
@@ -167,7 +159,6 @@ def show_surprise_page():
     st.markdown(f"<em>“{quote}”</em>", unsafe_allow_html=True)
     st.markdown("---")
     st.markdown("<p style='text-align: center; color: #999;'>Made with ❤️ just for you.</p>", unsafe_allow_html=True)
-
 
 # --- Main ---
 if st.session_state.unlocked:
