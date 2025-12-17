@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Harshita's Birthday Surprise Page with Cake
+Harshita's 21st Birthday Surprise Page
 """
 
 import streamlit as st
 from datetime import datetime
 import random
 import os
-from PIL import Image, ImageDraw
+from PIL import Image
 
 # --- Page Setup ---
 st.set_page_config(
@@ -16,10 +16,11 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- Paths (adjust to repo setup) ---
+# --- Paths ---
 IMAGE_PATH = "MANCHURIAN.jpg"
 PHOTO_DIR = "."  # All photos are in the repo root
 SONG_PATH = "yt1z.net - Gryffin - Nobody Compares To You (Official Music Video) ft. Katie Pearlman (320 KBps).mp3"
+CAKE_IMAGE_PATH = "triple_chocolate_cake.jpg"  # Use a pre-rendered image of cake
 
 # --- Constants ---
 CORRECT_CODE = "2103"
@@ -62,16 +63,17 @@ def show_landing_page():
     st.markdown("---")
     st.markdown("<h3 style='text-align: center;'>🔐 Enter the Secret Code to Unlock a Surprise</h3>", unsafe_allow_html=True)
 
-    code_input = st.text_input("🔢 Enter 4-digit Secret Code", type="password", max_chars=4)
+    code_input = st.text_input("🔢 Enter 4-digit Secret Code", type="password", max_chars=4, key="code_input")
 
-    if code_input:
+    if code_input and not st.session_state.get("unlocked", False):
         if code_input == CORRECT_CODE:
             st.success("🔓 Unlocked! You're amazing for figuring it out. 💖")
             st.session_state.unlocked = True
+            st.session_state.rerun_trigger = random.random()  # Force rerun
         else:
             st.error("❌ That's not the right code. Try again?")
 
-    # Show image
+    # Show main image
     if os.path.exists(IMAGE_PATH):
         image = Image.open(IMAGE_PATH)
         st.markdown("---")
@@ -79,7 +81,6 @@ def show_landing_page():
     else:
         st.warning("Couldn't find MANCHURIAN.jpg in the repo.")
 
-# --- Menu ---
 def show_menu():
     menu_html = """
     <div style='background-color:#ADD8E6; padding:15px; border-radius:10px; text-align:center; font-family:"Comic Sans MS", cursive;'>
@@ -94,10 +95,9 @@ def show_menu():
     )
     return choice
 
-# --- Love Letter ---
 def show_love_letter():
     love_letter = """
-    Dear Harshita,
+Dear Harshita,
 
 On this beautiful day, your 21st birthday, I want to pause for a moment and tell you just how much you mean to me. Words often feel inadequate when I try to express my feelings for you, but I’m going to try anyway because you deserve to hear them.
 
@@ -105,9 +105,15 @@ From the moment we started this journey together eight months ago, my life has b
 
 Today, as you celebrate your 21st birthday, I want you to know how proud I am of you. I see all the effort you put into your dreams, all the moments you doubt yourself, and all the times you push through challenges even when it’s hard. I know you sometimes worry about whether you’ll get into law school or whether you’re ready for the next step in your journey—but let me tell you this: you are more than ready. You have the brilliance, the determination, the courage, and the heart of someone who is destined to make a difference. I have never doubted for a single second that you will achieve everything you set your mind to, and I will be by your side cheering you on every step of the way.
 
-These past eight months have been a journey of joy and love for me. I’ve fallen in love with every part of you—the way you laugh, the way your eyes light up when you’re excited, the way your heart is so big and so full of care for others. You have a strength and a beauty that leave me in awe every day.
+These past eight months have been a journey of joy and love for me. I’ve fallen in love with every part of you—the way you laugh, the way your eyes light up when you’re excited, the way your heart is so big and so full of care for others. You have a strength and a beauty that leave me in awe every day. I never imagined that someone could make me feel this much love, but you’ve done it effortlessly, naturally, and completely.
+
+On this special day, I hope you feel just how cherished you are. I hope you know that every smile, every moment, every heartbeat between us is a gift I treasure endlessly. Today is about celebrating you—not just for the amazing person you are, but for everything you’ve endured, accomplished, and dreamed of. I’m so lucky that I get to be a part of your life while all of that unfolds.
+
+I want you to promise me something: that even on days when you feel small, unsure, or overwhelmed, you’ll remember this moment and the love that surrounds you. You’re never alone. You’re never unloved. You are extraordinary in ways you cannot even imagine. Your potential is limitless, and your heart is more beautiful than words can ever describe.
 
 Happy 21st birthday, my love. I can’t wait to see the amazing things this year brings for you, for us, and for the life you’re building. Thank you for letting me be a part of your life, for trusting me, for loving me, and for being you—so perfectly, wonderfully, you.
+
+I love you more than I could ever put into words. You are my heart, my joy, my everything, and I am so proud of the person you are and the person you are becoming.
 
 Forever and always,
 Nikhil (Your Man)!
@@ -115,15 +121,15 @@ Nikhil (Your Man)!
     st.markdown("<h3 style='color:#6A0572;'>A Love Letter Just For You</h3>", unsafe_allow_html=True)
     st.write(love_letter)
 
-# --- Slideshow ---
 def show_slideshow():
     photos = sorted([f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))])
 
     if photos:
         total_photos = len(photos)
-        song_length_seconds = 231  # adjust if needed
+        song_length_seconds = 231  # update if needed
         photo_display_time = song_length_seconds / total_photos
 
+        # Audio control
         if not st.session_state.audio_playing:
             if st.button("▶️ Play Song"):
                 st.session_state.audio_playing = True
@@ -141,39 +147,18 @@ def show_slideshow():
         img = Image.open(image_path)
         st.image(img, use_column_width=True)
         st.markdown(f"<p style='text-align: center; color: gray;'>Photo {st.session_state.photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
+        if st.session_state.audio_bytes:
+            st.audio(st.session_state.audio_bytes, format="audio/mp3", start_time=elapsed)
     else:
         st.info("No photos found for the slideshow.")
 
-# --- Cake (Pillow) ---
 def show_cake():
-    width, height = 400, 400
-    cake_img = Image.new("RGB", (width, height), "#ADD8E6")
-    draw = ImageDraw.Draw(cake_img)
-
-    # Draw three chocolate layers with simple 3D effect
-    layers = [
-        {"color": "#3E1F0D", "height": 50},  # dark chocolate
-        {"color": "#5C3317", "height": 50},  # milk chocolate
-        {"color": "#8B4513", "height": 50}   # light chocolate
-    ]
-
-    y = 300
-    for layer in layers:
-        draw.rectangle([100, y-layer["height"], 300, y], fill=layer["color"], outline="black")
-        # 3D effect: lighter top
-        draw.rectangle([100, y-layer["height"], 300, y-layer["height"]+5], fill="#C08050")
-        y -= layer["height"]
-
-    # Icing
-    draw.rectangle([100, y-10, 300, y], fill="#fff5ee")
-    y -= 10
-
-    # Cherries
-    draw.ellipse([140, y-20, 160, y], fill="red")
-    draw.ellipse([180, y-20, 200, y], fill="red")
-    draw.ellipse([220, y-20, 240, y], fill="red")
-
-    st.image(cake_img, caption="🎂 Triple Chocolate Cake for You!", use_column_width=True)
+    if os.path.exists(CAKE_IMAGE_PATH):
+        img = Image.open(CAKE_IMAGE_PATH)
+        st.markdown("<h3 style='color:#6A0572;'>🎂 Triple Chocolate Cake Just For You!</h3>", unsafe_allow_html=True)
+        st.image(img, use_column_width=True)
+    else:
+        st.warning("Cake image not found. Make sure triple_chocolate_cake.jpg is in the repo.")
 
 # --- Main ---
 if st.session_state.unlocked:
