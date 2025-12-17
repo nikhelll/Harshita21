@@ -8,6 +8,8 @@ from datetime import datetime
 import os
 from PIL import Image
 import time
+import plotly.graph_objects as go
+import numpy as np
 
 # For auto-refresh
 try:
@@ -86,8 +88,9 @@ def show_menu():
     </div>
     """
     st.markdown(menu_html, unsafe_allow_html=True)
-    choice = st.radio("", ("Love Letter", "Photo Slideshow + Song"))
+    choice = st.radio("", ("Love Letter", "Photo Slideshow + Song", "View Cake"))
     return choice
+
 
 # --- Love Letter ---
 def show_love_letter():
@@ -155,6 +158,81 @@ def show_slideshow():
     st.image(img, use_column_width=True)
     st.markdown(f"<p style='text-align:center; color:gray;'>Photo {photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
 
+def show_cake():
+    st.markdown("<h3 style='text-align:center; color:#D2691E;'>🎂 Your 3D Chocolate Cake! 🎂</h3>", unsafe_allow_html=True)
+
+    # Cake parameters
+    cake_radius = 1
+    cake_height = 1
+    layers = 3
+    layer_height = cake_height / layers
+
+    fig = go.Figure()
+    theta = np.linspace(0, 2*np.pi, 50)
+    x = cake_radius * np.cos(theta)
+    y = cake_radius * np.sin(theta)
+
+    # Cake layers
+    for i in range(layers):
+        z = np.full_like(theta, i * layer_height)
+        fig.add_trace(go.Scatter3d(
+            x=x, y=y, z=z,
+            mode='lines',
+            line=dict(color='saddlebrown', width=10),
+            showlegend=False
+        ))
+        fig.add_trace(go.Scatter3d(
+            x=x, y=y, z=z + layer_height,
+            mode='lines',
+            line=dict(color='peru', width=10),
+            showlegend=False
+        ))
+
+    # Top surface
+    fig.add_trace(go.Mesh3d(
+        x=np.append(x, 0), y=np.append(y, 0), z=np.append(np.full_like(x, cake_height), cake_height),
+        color='saddlebrown', opacity=0.9
+    ))
+
+    # Function to add candle
+    def add_candle(x_pos, y_pos, candle_height=0.2, candle_radius=0.03):
+        phi = np.linspace(0, 2*np.pi, 20)
+        x_c = x_pos + candle_radius * np.cos(phi)
+        y_c = y_pos + candle_radius * np.sin(phi)
+        z_c = np.zeros_like(phi)
+        fig.add_trace(go.Mesh3d(
+            x=np.concatenate([x_c, [x_pos]]),
+            y=np.concatenate([y_c, [y_pos]]),
+            z=np.concatenate([z_c + cake_height, np.full(1, cake_height + candle_height)]),
+            color='white',
+            opacity=1.0
+        ))
+        # Flame as small marker
+        flame_height = candle_height * 0.3
+        fig.add_trace(go.Scatter3d(
+            x=[x_pos],
+            y=[y_pos],
+            z=[cake_height + candle_height + flame_height],
+            mode='markers',
+            marker=dict(size=5, color='orange'),
+            showlegend=False
+        ))
+
+    # Candles for "21"
+    add_candle(-0.3, 0.2)  # '2'
+    add_candle(-0.1, 0.2)  # '2'
+    add_candle(0.25, 0.2)  # '1'
+
+    fig.update_layout(scene=dict(
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False),
+        zaxis=dict(visible=False),
+        aspectratio=dict(x=1, y=1, z=0.6)
+    ))
+
+    st.plotly_chart(fig)
+
+
 # --- Main ---
 if st.session_state.unlocked:
     choice = show_menu()
@@ -162,6 +240,9 @@ if st.session_state.unlocked:
         show_love_letter()
     elif choice == "Photo Slideshow + Song":
         show_slideshow()
+    elif choice == "View Cake":
+        show_cake()
 else:
     show_landing_page()
+
 
