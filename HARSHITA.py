@@ -159,68 +159,81 @@ def show_slideshow():
     st.markdown(f"<p style='text-align:center; color:gray;'>Photo {photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
 
 def show_cake():
-    st.markdown("<h3 style='text-align:center; color:#D2691E;'>🎂 Cake with Number Candles '21' 🎂</h3>", unsafe_allow_html=True)
-    
+    st.markdown("<h3 style='text-align:center; color:#D2691E;'>🎂 Chocolate Cake with Sprinkles and Candles 🎂</h3>", unsafe_allow_html=True)
+
     # Cake parameters
+    radius = 1.0
+    height = 0.6
     layers = 3
-    layer_radius = 1.2
-    layer_height = 0.5
-    layer_colors = ['#7B3F00', '#8B4513', '#A0522D']
-    
+    layer_height = height / layers
+
     fig = go.Figure()
-    theta = np.linspace(0, 2*np.pi, 50)
-    
-    # Solid cake layers
+
+    # Create solid cake layers (cylinders)
+    theta = np.linspace(0, 2*np.pi, 60)
     for i in range(layers):
         z_bottom = i * layer_height
-        z_top = z_bottom + layer_height
-        x_side = layer_radius * np.cos(theta)
-        y_side = layer_radius * np.sin(theta)
-        for j in range(len(theta)):
-            fig.add_trace(go.Mesh3d(
-                x=[x_side[j], x_side[j], x_side[(j+1)%len(theta)], x_side[(j+1)%len(theta)]],
-                y=[y_side[j], y_side[j], y_side[(j+1)%len(theta)], y_side[(j+1)%len(theta)]],
-                z=[z_bottom, z_top, z_top, z_bottom],
-                color=layer_colors[i], opacity=1.0, showlegend=False
-            ))
+        z_top = (i+1) * layer_height
+        r = radius * (1 - i*0.05)  # slightly smaller top layers for realism
+        x = r * np.outer(np.cos(theta), np.ones(2))
+        y = r * np.outer(np.sin(theta), np.ones(2))
+        z = np.array([[z_bottom, z_top]]*len(theta))
 
-    # --- Candles shaped like '2' and '1' ---
-    def extrude_shape(xy_points, base_z, height, color='white'):
-        xy_points = np.array(xy_points)
-        n = len(xy_points)
-        z_bottom = np.full(n, base_z)
-        z_top = np.full(n, base_z + height)
-        # sides
-        for i in range(n-1):
-            fig.add_trace(go.Mesh3d(
-                x=[xy_points[i,0], xy_points[i,0], xy_points[i+1,0], xy_points[i+1,0]],
-                y=[xy_points[i,1], xy_points[i,1], xy_points[i+1,1], xy_points[i+1,1]],
-                z=[z_bottom[i], z_top[i], z_top[i+1], z_bottom[i+1]],
-                color=color, opacity=1.0, showlegend=False
-            ))
-        # top
+        fig.add_trace(go.Surface(
+            x=x, y=y, z=z,
+            colorscale=[[0, 'saddlebrown'], [1, 'peru']],
+            showscale=False,
+            opacity=1.0
+        ))
+
+    # Sprinkles
+    num_sprinkles = 50
+    sprinkle_x = np.random.uniform(-radius*0.9, radius*0.9, num_sprinkles)
+    sprinkle_y = np.random.uniform(-radius*0.9, radius*0.9, num_sprinkles)
+    sprinkle_z = np.full(num_sprinkles, height)
+    colors = np.random.choice(['red','yellow','blue','green','pink','purple'], num_sprinkles)
+    fig.add_trace(go.Scatter3d(
+        x=sprinkle_x, y=sprinkle_y, z=sprinkle_z,
+        mode='markers',
+        marker=dict(size=4, color=colors),
+        name='Sprinkles'
+    ))
+
+    # Candles
+    candle_height = 0.2
+    candle_radius = 0.03
+    candle_positions = [(-0.3,0.2), (0.3,0.2), (0,0)]
+    for cx, cy in candle_positions:
+        phi = np.linspace(0, 2*np.pi, 20)
+        x_c = cx + candle_radius * np.cos(phi)
+        y_c = cy + candle_radius * np.sin(phi)
+        z_c = np.zeros_like(phi)
         fig.add_trace(go.Mesh3d(
-            x=xy_points[:,0],
-            y=xy_points[:,1],
-            z=z_top,
-            color=color, opacity=1.0, alphahull=0, showlegend=False
+            x=np.concatenate([x_c, [cx]]),
+            y=np.concatenate([y_c, [cy]]),
+            z=np.concatenate([z_c + height, np.full(1, height+candle_height)]),
+            color='white',
+            opacity=1.0
         ))
-        # flame
-        center_x = xy_points[:,0].mean()
-        center_y = xy_points[:,1].mean()
+        # Flame
         fig.add_trace(go.Scatter3d(
-            x=[center_x], y=[center_y], z=[base_z + height + 0.05],
-            mode='markers', marker=dict(size=5, color='orange'), showlegend=False
+            x=[cx],
+            y=[cy],
+            z=[height + candle_height + 0.03],
+            mode='markers',
+            marker=dict(size=5, color='orange')
         ))
 
-    # Define simple 2D points for '2' and '1'
-    digit_2 = [[0,0], [0.2,0], [0.2,0.1], [0,0.3], [0.2,0.5], [0.2,0.6], [0,0.6]]
-    digit_1 = [[0,0], [0,0.6]]
-
-    # Extrude on top of cake
-    base_z = layers * layer_height
-    extrude_shape(np.array(digit_2) - [0.3, 0.1], base_z, 0.3)  # '2' left
-    extrude_shape(np.array(digit_1) + [0.25, 0], base_z, 0.3)     # '1' right
+    # Knife slice (simple representation)
+    knife_x = np.array([-radius, radius])
+    knife_y = np.array([0, 0])
+    knife_z = np.array([0.6, 0.6])
+    fig.add_trace(go.Scatter3d(
+        x=knife_x, y=knife_y, z=knife_z,
+        mode='lines',
+        line=dict(color='silver', width=6),
+        name='Knife'
+    ))
 
     fig.update_layout(scene=dict(
         xaxis=dict(visible=False),
@@ -229,8 +242,7 @@ def show_cake():
         aspectratio=dict(x=1, y=1, z=0.6)
     ))
 
-    st.plotly_chart(fig)
-
+    st.plotly_chart(fig, use_container_width=True)
 
 
 # --- Main ---
@@ -244,6 +256,7 @@ if st.session_state.unlocked:
         show_cake()
 else:
     show_landing_page()
+
 
 
 
