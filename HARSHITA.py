@@ -16,12 +16,12 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- Paths (adjust to your repo) ---
+# --- Paths (repo-based) ---
 IMAGE_PATH = "MANCHURIAN.jpg"
-PHOTO_DIR = "."  # All jpg files are in the repo root
+PHOTO_DIR = "."  # current repo directory, where all photos are
 SONG_PATH = "yt1z.net - Gryffin - Nobody Compares To You (Official Music Video) ft. Katie Pearlman (320 KBps).mp3"
 
-# --- Constants ---
+# --- Secret Code ---
 CORRECT_CODE = "2103"
 
 # --- Initialize session state ---
@@ -44,13 +44,6 @@ countdown = birthday - now
 total_duration = birthday - start_date
 
 # --- Helper Functions ---
-
-def sorted_photos():
-    """Return photos in the intended order: baby1-3, then pic1-23"""
-    all_files = [f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))]
-    baby_photos = sorted([f for f in all_files if f.lower().startswith("baby")])
-    pic_photos = sorted([f for f in all_files if f.lower().startswith("pic")])
-    return baby_photos + pic_photos
 
 def show_landing_page():
     st.markdown("<h1 style='text-align: center; color: #D6336C;'>🎉 Harshita's 21st Birthday 🎉</h1>", unsafe_allow_html=True)
@@ -86,9 +79,8 @@ def show_landing_page():
             st.success("🔓 Unlocked! You're amazing for figuring it out. 💖")
             st.session_state.unlocked = True
             st.balloons()
-            st.experimental_rerun()  # <- ensures surprise page shows immediately
-        else:
-            st.error("❌ That's not the right code. Try again?")
+            show_surprise_page()  # immediately show surprise
+            return  # stop further execution of landing page
 
     # Show main image
     if os.path.exists(IMAGE_PATH):
@@ -97,6 +89,7 @@ def show_landing_page():
         st.image(image, caption="Your Favourite 😉", use_column_width=True)
     else:
         st.warning("Couldn't find MANCHURIAN.jpg at the specified path.")
+
 
 def show_surprise_page():
     st.markdown("<h1 style='text-align: center; color: #D6336C;'>🎉 Happy 21st Birthday, My Love! 🎉</h1>", unsafe_allow_html=True)
@@ -112,15 +105,25 @@ def show_surprise_page():
     st.write(love_letter)
     st.markdown("---")
 
-    # Photo slideshow
-    photos = sorted_photos()
+    # --- Photo slideshow ---
+    photos = [f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))]
+
+    # Custom sorting: baby1 → baby3, then pic1 → pic23
+    def photo_sort_key(name):
+        if name.lower().startswith("baby"):
+            return (0, int(''.join(filter(str.isdigit, name))))
+        elif name.lower().startswith("pic"):
+            return (1, int(''.join(filter(str.isdigit, name))))
+        else:
+            return (2, name)
+    photos = sorted(photos, key=photo_sort_key)
 
     if photos:
         total_photos = len(photos)
-        song_length_seconds = 231  # Adjust if your song is longer/shorter
+        song_length_seconds = 231  # update if different
         photo_display_time = song_length_seconds / total_photos
 
-        # Audio control
+        # --- Audio control ---
         if not st.session_state.audio_playing:
             if st.button("▶️ Play Song"):
                 st.session_state.audio_playing = True
@@ -135,7 +138,7 @@ def show_surprise_page():
                 elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
                 st.audio(st.session_state.audio_bytes, format="audio/mp3", start_time=elapsed)
 
-        # Determine current photo
+        # Show current photo based on elapsed time
         if st.session_state.audio_playing and st.session_state.start_time:
             elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
         else:
@@ -151,6 +154,7 @@ def show_surprise_page():
 
     st.markdown("---")
 
+    # --- Daily Love Quote ---
     quotes = [
         "Distance means so little when someone means so much.",
         "Love knows no distance; it hath no continent; its eyes are for the stars. – Gilbert Parker",
@@ -163,6 +167,7 @@ def show_surprise_page():
     st.markdown(f"<em>“{quote}”</em>", unsafe_allow_html=True)
     st.markdown("---")
     st.markdown("<p style='text-align: center; color: #999;'>Made with ❤️ just for you.</p>", unsafe_allow_html=True)
+
 
 # --- Main ---
 if st.session_state.unlocked:
