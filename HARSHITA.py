@@ -5,8 +5,8 @@ Harshita's Birthday Surprise Page with Menu + Slideshow
 
 import streamlit as st
 from datetime import datetime
-import random
 import os
+import time
 from PIL import Image
 
 # --- Page Setup ---
@@ -27,12 +27,8 @@ CORRECT_CODE = "2103"
 # --- Initialize session state ---
 if "unlocked" not in st.session_state:
     st.session_state.unlocked = False
-if "audio_playing" not in st.session_state:
-    st.session_state.audio_playing = False
-    st.session_state.start_time = None
+if "audio_bytes" not in st.session_state:
     st.session_state.audio_bytes = None
-if "photo_index" not in st.session_state:
-    st.session_state.photo_index = 0
 
 # --- Dates ---
 birthday = datetime(2025, 12, 21, 0, 0, 0)
@@ -63,7 +59,6 @@ def show_landing_page():
             st.session_state.unlocked = True
             st.success("🔓 Unlocked! You're amazing for figuring it out. 💖")
             st.balloons()
-            st.rerun()  # <-- new way to force page rerun in modern Streamlit
         else:
             st.error("❌ That's not the right code. Try again?")
 
@@ -122,25 +117,30 @@ def show_slideshow():
         return
 
     total_photos = len(photos)
-    song_length_seconds = 231
+    song_length_seconds = 231  # adjust to match your song duration
     photo_display_time = song_length_seconds / total_photos
 
-    # Audio
-    if not st.session_state.audio_playing:
-        st.session_state.audio_playing = True
-        st.session_state.start_time = datetime.now()
+    # Load audio once
+    if st.session_state.audio_bytes is None:
         with open(SONG_PATH, "rb") as f:
             st.session_state.audio_bytes = f.read()
 
-    elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
-    st.audio(st.session_state.audio_bytes, format="audio/mp3", start_time=elapsed)
+    # Play audio
+    st.audio(st.session_state.audio_bytes, format="audio/mp3", start_time=0)
 
-    # Photo index based on elapsed
-    st.session_state.photo_index = int(elapsed // photo_display_time) % total_photos
-    image_path = os.path.join(PHOTO_DIR, photos[st.session_state.photo_index])
-    img = Image.open(image_path)
-    st.image(img, use_column_width=True)
-    st.markdown(f"<p style='text-align: center; color: gray;'>Photo {st.session_state.photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
+    # Placeholder for dynamic images
+    image_placeholder = st.empty()
+
+    # Slideshow loop
+    start_time = time.time()
+    while True:
+        elapsed = time.time() - start_time
+        photo_index = int(elapsed // photo_display_time) % total_photos
+        image_path = os.path.join(PHOTO_DIR, photos[photo_index])
+        img = Image.open(image_path)
+        image_placeholder.image(img, use_column_width=True)
+        st.markdown(f"<p style='text-align:center; color:gray;'>Photo {photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
+        time.sleep(0.5)
 
 # --- Main ---
 if st.session_state.unlocked:
@@ -151,5 +151,3 @@ if st.session_state.unlocked:
         show_slideshow()
 else:
     show_landing_page()
-
-
