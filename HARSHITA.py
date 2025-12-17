@@ -18,7 +18,9 @@ st.set_page_config(
 
 # --- Paths (adjust to your local setup) ---
 IMAGE_PATH = "MANCHURIAN.jpg"
-PHOTO_DIR = r"C:\Users\nikhi\Documents\Scripts\Script\Pics"
+PHOTO_DIR = PHOTO_DIR = "."
+photos = sorted([f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))])
+
 SONG_PATH = "yt1z.net - Gryffin - Nobody Compares To You (Official Music Video) ft. Katie Pearlman (320 KBps).mp3"
 
 
@@ -165,5 +167,6 @@ if st.session_state.unlocked:
     show_surprise_page()
 else:
     show_landing_page()
+
 
 
