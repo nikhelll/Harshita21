@@ -63,13 +63,15 @@ def show_landing_page():
 
     code_input = st.text_input("🔢 Enter 4-digit Secret Code", type="password", max_chars=4)
 
-    if code_input:
-        if code_input == CORRECT_CODE:
-            st.session_state.unlocked = True
-            st.success("🔓 Unlocked! You're amazing for figuring it out. 💖")
-            st.balloons()
-        else:
-            st.error("❌ That's not the right code. Try again?")
+
+    if code_input == CORRECT_CODE:
+        st.session_state.unlocked = True
+        st.success("🔓 Unlocked! You're amazing for figuring it out. 💖")
+        st.balloons()
+        time.sleep(0.5)  # optional, lets balloons render nicely
+        st.rerun()
+    else:
+        st.error("❌ That's not the right code. Try again?")
 
     if os.path.exists(IMAGE_PATH):
         image = Image.open(IMAGE_PATH)
@@ -164,4 +166,5 @@ if st.session_state.unlocked:
         show_slideshow()
 else:
     show_landing_page()
+
 
