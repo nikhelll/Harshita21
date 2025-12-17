@@ -90,8 +90,26 @@ def show_love_letter():
     love_letter = """
 Dear Harshita,
 
-On this beautiful day, your 21st birthday, I want to pause and tell you how deeply you mean to me...
-(Include full heartfelt letter as before)
+On this beautiful day, your 21st birthday, I want to pause for a moment and tell you just how much you mean to me. Words often feel inadequate when I try to express my feelings for you, but I’m going to try anyway because you deserve to hear them.
+
+From the moment we started this journey together eight months ago, my life has been brighter, fuller, and more meaningful. Every laugh we’ve shared, every conversation, every quiet moment, every silly joke—we’ve built a world together in such a short time, and it feels like I’ve known you forever. You’ve shown me what it means to care deeply, to love fearlessly, and to be patient, understanding, and kind, not only to me but to everyone around you.
+
+Today, as you celebrate your 21st birthday, I want you to know how proud I am of you. I see all the effort you put into your dreams, all the moments you doubt yourself, and all the times you push through challenges even when it’s hard. I know you sometimes worry about whether you’ll get into law school or whether you’re ready for the next step in your journey—but let me tell you this: you are more than ready. You have the brilliance, the determination, the courage, and the heart of someone who is destined to make a difference. I have never doubted for a single second that you will achieve everything you set your mind to, and I will be by your side cheering you on every step of the way.
+
+I love the way your mind works, how you question things, how you care about justice, fairness, and doing what’s right. That passion, that fire inside you, is what makes you so incredible, and it’s what will make you an amazing lawyer one day. Even when you doubt yourself, even when you feel unsure, remember that I believe in you completely. I believe in you when you don’t believe in yourself. I see your potential, your brilliance, and your unstoppable spirit.
+
+These past eight months have been a journey of joy and love for me. I’ve fallen in love with every part of you—the way you laugh, the way your eyes light up when you’re excited, the way your heart is so big and so full of care for others. You have a strength and a beauty that leave me in awe every day. I never imagined that someone could make me feel this much love, but you’ve done it effortlessly, naturally, and completely.
+
+On this special day, I hope you feel just how cherished you are. I hope you know that every smile, every moment, every heartbeat between us is a gift I treasure endlessly. Today is about celebrating you—not just for the amazing person you are, but for everything you’ve endured, accomplished, and dreamed of. You’ve grown so much, and yet, I know your journey is only beginning. There are so many dreams you’re going to chase, so many hearts you’re going to touch, and so many victories you’re going to achieve. I’m so lucky that I get to be a part of your life while all of that unfolds.
+
+I want you to promise me something: that even on days when you feel small, unsure, or overwhelmed, you’ll remember this moment and the love that surrounds you. You’re never alone. You’re never unloved. You are extraordinary in ways you cannot even imagine. Your potential is limitless, and your heart is more beautiful than words can ever describe.
+
+Happy 21st birthday, my love. I can’t wait to see the amazing things this year brings for you, for us, and for the life you’re building. Thank you for letting me be a part of your life, for trusting me, for loving me, and for being you—so perfectly, wonderfully, you.
+
+I love you more than I could ever put into words. You are my heart, my joy, my everything, and I am so proud of the person you are and the person you are becoming.
+
+Forever and always,
+Nikhil
 """
     st.markdown("<h3 style='color:#6A0572;'>A Love Letter Just For You</h3>", unsafe_allow_html=True)
     st.write(love_letter)
@@ -133,3 +151,4 @@ if st.session_state.unlocked:
         show_slideshow()
 else:
     show_landing_page()
+
