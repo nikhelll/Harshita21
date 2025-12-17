@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Harshita's Birthday Surprise Page with Menu + Slideshow
+Harshita's Birthday Surprise Page with Menu + Working Slideshow
 """
 
 import streamlit as st
@@ -23,15 +23,13 @@ SONG_PATH = "yt1z.net - Gryffin - Nobody Compares To You (Official Music Video) 
 # --- Constants ---
 CORRECT_CODE = "2103"
 
-# --- Initialize session state ---
+# --- Session State ---
 if "unlocked" not in st.session_state:
     st.session_state.unlocked = False
 if "audio_playing" not in st.session_state:
     st.session_state.audio_playing = False
     st.session_state.start_time = None
     st.session_state.audio_bytes = None
-if "photo_index" not in st.session_state:
-    st.session_state.photo_index = 0
 
 # --- Dates ---
 birthday = datetime(2025, 12, 21, 0, 0, 0)
@@ -94,32 +92,39 @@ def show_love_letter():
 
 # --- Slideshow + Song ---
 def show_slideshow():
+    # get photos in sorted order
     photos = sorted([f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))])
     if not photos:
         st.info("No photos found for the slideshow.")
         return
 
     total_photos = len(photos)
-    song_length_seconds = 231  # update to match your song
+    song_length_seconds = 231  # match your song length
     photo_display_time = song_length_seconds / total_photos
 
-    # Start audio
+    # start audio
     if not st.session_state.audio_playing:
         st.session_state.audio_playing = True
         st.session_state.start_time = datetime.now()
         with open(SONG_PATH, "rb") as f:
             st.session_state.audio_bytes = f.read()
 
-    # Compute elapsed time
+    # audio player
     elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
     st.audio(st.session_state.audio_bytes, format="audio/mp3", start_time=elapsed)
 
-    # Show correct photo based on elapsed time
-    st.session_state.photo_index = int(elapsed // photo_display_time) % total_photos
-    image_path = os.path.join(PHOTO_DIR, photos[st.session_state.photo_index])
+    # display correct photo
+    photo_index = int(elapsed // photo_display_time) % total_photos
+    image_path = os.path.join(PHOTO_DIR, photos[photo_index])
     img = Image.open(image_path)
-    st.image(img, use_column_width=True)
-    st.markdown(f"<p style='text-align: center; color: gray;'>Photo {st.session_state.photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
+    
+    # use container so it can auto-refresh
+    container = st.empty()
+    container.image(img, use_column_width=True)
+    st.markdown(f"<p style='text-align: center; color: gray;'>Photo {photo_index + 1} of {total_photos}</p>", unsafe_allow_html=True)
+
+    # auto-refresh every 1 second to advance photos
+    st.experimental_rerun()
 
 # --- Main ---
 if st.session_state.unlocked:
