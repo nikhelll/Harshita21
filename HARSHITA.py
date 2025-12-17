@@ -16,13 +16,10 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- Paths (adjust to your local setup) ---
+# --- Paths (adjust to your repo) ---
 IMAGE_PATH = "MANCHURIAN.jpg"
-PHOTO_DIR = PHOTO_DIR = "."
-photos = sorted([f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))])
-
+PHOTO_DIR = "."  # All jpg files are in the repo root
 SONG_PATH = "yt1z.net - Gryffin - Nobody Compares To You (Official Music Video) ft. Katie Pearlman (320 KBps).mp3"
-
 
 # --- Constants ---
 CORRECT_CODE = "2103"
@@ -47,6 +44,13 @@ countdown = birthday - now
 total_duration = birthday - start_date
 
 # --- Helper Functions ---
+
+def sorted_photos():
+    """Return photos in the intended order: baby1-3, then pic1-23"""
+    all_files = [f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".jpg", ".jpeg", ".png", ".gif"))]
+    baby_photos = sorted([f for f in all_files if f.lower().startswith("baby")])
+    pic_photos = sorted([f for f in all_files if f.lower().startswith("pic")])
+    return baby_photos + pic_photos
 
 def show_landing_page():
     st.markdown("<h1 style='text-align: center; color: #D6336C;'>🎉 Harshita's 21st Birthday 🎉</h1>", unsafe_allow_html=True)
@@ -82,10 +86,11 @@ def show_landing_page():
             st.success("🔓 Unlocked! You're amazing for figuring it out. 💖")
             st.session_state.unlocked = True
             st.balloons()
+            st.experimental_rerun()  # <- ensures surprise page shows immediately
         else:
             st.error("❌ That's not the right code. Try again?")
 
-    # Show image
+    # Show main image
     if os.path.exists(IMAGE_PATH):
         image = Image.open(IMAGE_PATH)
         st.markdown("---")
@@ -105,17 +110,14 @@ def show_surprise_page():
     """
     st.markdown("<h3 style='color: #6A0572;'>A Love Letter Just For You</h3>", unsafe_allow_html=True)
     st.write(love_letter)
-
     st.markdown("---")
 
     # Photo slideshow
-    photos = []
-    if os.path.exists(PHOTO_DIR):
-        photos = sorted([f for f in os.listdir(PHOTO_DIR) if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif"))])
+    photos = sorted_photos()
 
     if photos:
         total_photos = len(photos)
-        song_length_seconds = 231
+        song_length_seconds = 231  # Adjust if your song is longer/shorter
         photo_display_time = song_length_seconds / total_photos
 
         # Audio control
@@ -133,7 +135,7 @@ def show_surprise_page():
                 elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
                 st.audio(st.session_state.audio_bytes, format="audio/mp3", start_time=elapsed)
 
-        # Current photo
+        # Determine current photo
         if st.session_state.audio_playing and st.session_state.start_time:
             elapsed = (datetime.now() - st.session_state.start_time).total_seconds()
         else:
@@ -167,6 +169,3 @@ if st.session_state.unlocked:
     show_surprise_page()
 else:
     show_landing_page()
-
-
-
