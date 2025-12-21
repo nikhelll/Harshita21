@@ -36,7 +36,7 @@ CAKE_SONG_PATH = "HAPPY Birthday Song, Happy Birthday to You.mp3"
 CAKE_GIF_PATH = "cake.gif"  # generated animated cake GIF
 
 # --- Constants ---
-CORRECT_CODE = "2103"
+CORRECT_CODE = "8891"
 SLIDESHOW_SONG_LENGTH_SECONDS = 231  # adjust for your song
 
 # --- Initialize session state ---
@@ -182,4 +182,5 @@ if st.session_state.unlocked:
         show_cake_surprise()
 else:
     show_landing_page()
+
 
