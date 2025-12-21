@@ -25,8 +25,8 @@ st.set_page_config(
 # --- Paths ---
 IMAGE_PATH = "MANCHURIAN.jpg"
 PHOTO_DIR = "."  # all photos in repo root
-SONG_PATH = "happy_birthday_song.mp3"  # replace with your song
-CAKE_GIF_PATH = "cake.gif"  # generated animated cake
+SONG_PATH = "happy_birthday_song.mp3"  # replace with your song file
+CAKE_GIF_PATH = "cake.gif"  # generated animated cake GIF
 
 # --- Constants ---
 CORRECT_CODE = "2103"
@@ -39,6 +39,8 @@ if "audio_bytes" not in st.session_state:
     st.session_state.audio_bytes = None
 if "slideshow_start_time" not in st.session_state:
     st.session_state.slideshow_start_time = None
+if "rerun_trigger" not in st.session_state:
+    st.session_state.rerun_trigger = False  # used to force pseudo-rerun
 
 # --- Dates ---
 birthday = datetime(2025, 12, 21, 0, 0, 0)
@@ -70,8 +72,9 @@ def show_landing_page():
         st.session_state.unlocked = True
         st.success("🔓 Unlocked! You're amazing for figuring it out. 💖")
         st.balloons()
-        time.sleep(0.5)  # optional pause for balloons
-        st.experimental_rerun()
+        time.sleep(0.5)
+        # Force pseudo-rerun by changing session state
+        st.session_state.rerun_trigger = not st.session_state.rerun_trigger
     elif code_input:
         st.error("❌ That's not the right code. Try again?")
 
