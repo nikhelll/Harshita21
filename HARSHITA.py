@@ -32,8 +32,8 @@ SLIDESHOW_SONG_PATH = "yt1z.net - Gryffin - Nobody Compares To You (Official Mus
 # Cake song
 CAKE_SONG_PATH = "HAPPY Birthday Song, Happy Birthday to You.mp3"
 
-# Cake GIF
-CAKE_GIF_PATH = "cake.gif"  # generated animated cake GIF
+# Cake image
+CAKE_IMAGE_PATH = "HARSHICAKE.png"
 
 # --- Constants ---
 CORRECT_CODE = "8891"
@@ -47,7 +47,7 @@ if "slideshow_audio_bytes" not in st.session_state:
 if "slideshow_start_time" not in st.session_state:
     st.session_state.slideshow_start_time = None
 if "rerun_trigger" not in st.session_state:
-    st.session_state.rerun_trigger = False  # used to force pseudo-rerun
+    st.session_state.rerun_trigger = False
 
 # --- Dates ---
 birthday = datetime(2025, 12, 21, 0, 0, 0)
@@ -80,8 +80,8 @@ def show_landing_page():
         st.success("🔓 Unlocked! You're amazing for figuring it out. 💖")
         st.balloons()
         time.sleep(0.5)
-        # Force pseudo-rerun by changing session state
         st.session_state.rerun_trigger = not st.session_state.rerun_trigger
+        st.experimental_rerun()
     elif code_input:
         st.error("❌ That's not the right code. Try again?")
 
@@ -110,7 +110,7 @@ def show_menu():
 # -----------------------------
 def show_love_letter():
     love_letter = """ 
-    (Keep your full love letter text here as in previous version)
+    (Keep your full love letter text here)
     """
     st.markdown("<h3 style='color:#6A0572;'>A Love Letter Just For You</h3>", unsafe_allow_html=True)
     st.write(love_letter)
@@ -156,7 +156,6 @@ def show_cake_surprise():
     st.markdown("<h1 style='text-align:center; color:red;'>HAPPY 21ST BIRTHDAY MY LOVE ❤️</h1>", unsafe_allow_html=True)
 
     # Display static cake image
-    CAKE_IMAGE_PATH = "HARSHICAKE.png"  # your uploaded image
     if os.path.exists(CAKE_IMAGE_PATH):
         st.image(CAKE_IMAGE_PATH, use_column_width=True)
     else:
@@ -167,7 +166,6 @@ def show_cake_surprise():
         st.audio(CAKE_SONG_PATH, format="audio/mp3", start_time=0)
     else:
         st.warning("Birthday song not found!")
-
 
 # -----------------------------
 # Main
@@ -182,5 +180,3 @@ if st.session_state.unlocked:
         show_cake_surprise()
 else:
     show_landing_page()
-
-
