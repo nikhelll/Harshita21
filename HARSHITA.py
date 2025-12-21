@@ -155,17 +155,19 @@ def show_slideshow():
 def show_cake_surprise():
     st.markdown("<h1 style='text-align:center; color:red;'>HAPPY 21ST BIRTHDAY MY LOVE ❤️</h1>", unsafe_allow_html=True)
 
-    # Display animated cake GIF
-    if os.path.exists(CAKE_GIF_PATH):
-        st.image(CAKE_GIF_PATH, use_column_width=True)
+    # Display static cake image
+    CAKE_IMAGE_PATH = "HARSHICAKE.png"  # your uploaded image
+    if os.path.exists(CAKE_IMAGE_PATH):
+        st.image(CAKE_IMAGE_PATH, use_column_width=True)
     else:
-        st.warning("Cake GIF not found. Run the cake animation script first.")
+        st.warning("Cake image not found! Make sure HARSHICAKE.png is in the repo.")
 
     # Play birthday song
     if os.path.exists(CAKE_SONG_PATH):
         st.audio(CAKE_SONG_PATH, format="audio/mp3", start_time=0)
     else:
         st.warning("Birthday song not found!")
+
 
 # -----------------------------
 # Main
@@ -180,3 +182,4 @@ if st.session_state.unlocked:
         show_cake_surprise()
 else:
     show_landing_page()
+
