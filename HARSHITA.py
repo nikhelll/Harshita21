@@ -25,7 +25,7 @@ st.set_page_config(
 # --- Paths ---
 IMAGE_PATH = "MANCHURIAN.jpg"
 PHOTO_DIR = "."  # all photos in repo root
-SONG_PATH = "happy_birthday_song.mp3"  # replace with your song file
+SONG_PATH = "yt1z.net - Gryffin - Nobody Compares To You (Official Music Video) ft. Katie Pearlman (320 KBps).mp3"  # replace with your song file
 CAKE_GIF_PATH = "cake.gif"  # generated animated cake GIF
 
 # --- Constants ---
@@ -194,3 +194,4 @@ if st.session_state.unlocked:
         show_cake_surprise()
 else:
     show_landing_page()
+
