@@ -7,7 +7,6 @@ import streamlit as st
 from datetime import datetime
 from PIL import Image
 import os
-import time
 from streamlit_autorefresh import st_autorefresh
 
 # --- Paths ---
@@ -19,7 +18,9 @@ CAKE_SONG_PATH = "HAPPY Birthday Song, Happy Birthday to You.mp3"
 CAKE_IMAGE_PATH = "HARSHICAKE.png"
 
 CORRECT_CODE = "8891"
-SLIDESHOW_SONG_LENGTH_SECONDS = 231
+SLIDESHOW_SONG_LENGTH_SECONDS = 231  # total song length
+# 26 photos → ~8.88 seconds per photo
+PHOTO_DISPLAY_TIME = SLIDESHOW_SONG_LENGTH_SECONDS / 26
 
 # --- Initialize session state ---
 if "unlocked" not in st.session_state:
@@ -42,7 +43,7 @@ def show_secret_code():
         else:
             st.error("Wrong code. Try again!")
 
-    # Show cover image while locked
+    # Display MANCHURIAN image on secret page
     if os.path.exists(IMAGE_PATH):
         img = Image.open(IMAGE_PATH)
         st.image(img, use_column_width=True)
@@ -72,10 +73,9 @@ On this day, 21 years ago, the most precious girl was born. Fast forward to toda
             return
 
         total_photos = len(photos)
-        photo_display_time = SLIDESHOW_SONG_LENGTH_SECONDS / total_photos
 
-        # auto-refresh every 1 second
-        count = st_autorefresh(interval=1000, limit=None, key="slideshow_refresh")
+        # Auto-refresh every PHOTO_DISPLAY_TIME seconds
+        count = st_autorefresh(interval=int(PHOTO_DISPLAY_TIME * 1000), limit=None, key="slideshow_refresh")
         photo_index = count % total_photos
         image_path = os.path.join(PHOTO_DIR, photos[photo_index])
         img = Image.open(image_path)
